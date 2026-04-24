@@ -63,7 +63,6 @@ class GitHubContentService extends ChangeNotifier {
           final res = await http.get(
             Uri.parse(apiUrl),
             headers: {
-              'Authorization': 'token $_token',
               'Accept': 'application/vnd.github.v3+json',
             },
           );
@@ -146,7 +145,6 @@ class GitHubContentService extends ChangeNotifier {
     try {
       final apiBase = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents';
       final headers = {
-        'Authorization': 'token $_token',
         'Accept': 'application/vnd.github.v3+json',
       };
       
@@ -333,7 +331,6 @@ class GitHubContentService extends ChangeNotifier {
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {
-          'Authorization': 'token $_token',
           'Accept': 'application/vnd.github.v3+json',
         },
       );
