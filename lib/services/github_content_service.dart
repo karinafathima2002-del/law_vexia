@@ -106,10 +106,18 @@ class GitHubContentService extends ChangeNotifier {
       // ── Ensure all 6 units exist so they stay unlocked ──
       for (int i = 1; i <= 6; i++) {
         if (!_units.any((u) => u.number == i)) {
+          String unitTitle = 'Unit $i';
+          if (i == 1) unitTitle = 'Historical Background';
+          if (i == 2) unitTitle = 'Making of Constitution';
+          if (i == 3) unitTitle = 'Union and Citizenship';
+          if (i == 4) unitTitle = 'Fundamental Rights';
+          if (i == 5) unitTitle = 'DPSP & Duties';
+          if (i == 6) unitTitle = 'Union Executive';
+
           _units.add(UnitContent(
             id: 'unit$i',
             number: i,
-            title: i == 1 ? 'Historical Background' : 'Unit $i Content',
+            title: unitTitle,
             description: 'Tap to view content',
             color: _getUnitColorStatic(i),
             topics: [
