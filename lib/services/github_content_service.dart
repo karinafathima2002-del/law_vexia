@@ -103,6 +103,27 @@ class GitHubContentService extends ChangeNotifier {
     } catch (e) {
       debugPrint('Fetch Error: $e');
     } finally {
+      // ── Ensure all 6 units exist so they stay unlocked ──
+      for (int i = 1; i <= 6; i++) {
+        if (!_units.any((u) => u.number == i)) {
+          _units.add(UnitContent(
+            id: 'unit$i',
+            number: i,
+            title: i == 1 ? 'Historical Background' : 'Unit $i Content',
+            description: 'Tap to view content',
+            color: _getUnitColorStatic(i),
+            topics: [
+              Topic(
+                id: 'placeholder_$i',
+                title: 'Content Coming Soon',
+                content: 'We are currently updating the content for Unit $i. Check back shortly!',
+                keyPoints: ['Updating soon...'],
+              )
+            ],
+          ));
+        }
+      }
+      _units.sort((a, b) => a.number.compareTo(b.number));
       _isLoading = false;
       notifyListeners();
     }
