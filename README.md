@@ -12,5 +12,5 @@
 Each unit includes:
 - Study notes with key points
 - Case law with facts, held, significance
-- 8+ MCQ questions
+- MCQ questions
 - All 5 game modes
