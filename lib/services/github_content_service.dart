@@ -64,6 +64,7 @@ class GitHubContentService extends ChangeNotifier {
             Uri.parse(apiUrl),
             headers: {
               'Accept': 'application/vnd.github.v3+json',
+              'Authorization': 'token $_token',
             },
           );
           
@@ -146,6 +147,7 @@ class GitHubContentService extends ChangeNotifier {
       final apiBase = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents';
       final headers = {
         'Accept': 'application/vnd.github.v3+json',
+        'Authorization': 'token $_token',
       };
       
       final results = await Future.wait([
@@ -300,21 +302,46 @@ class GitHubContentService extends ChangeNotifier {
     for (var line in lines) {
       if (line.trim().isEmpty) continue;
       
-      // Expected format: Question | OptionA, OptionB, OptionC, OptionD | CorrectIndex | Explanation
       final parts = line.split('|');
-      if (parts.length >= 3) {
-        final options = parts[1].split(',').map((e) => e.trim()).toList();
-        final correctIdx = int.tryParse(parts[2].trim()) ?? 0;
-        
-        questions.add(QuizQuestion(
-          id: 'q_${DateTime.now().millisecondsSinceEpoch}_${questions.length}',
-          type: isVerdict ? QuizType.trueFalse : QuizType.multipleChoice,
-          question: parts[0].trim(),
-          options: options,
-          answer: (correctIdx >= 0 && correctIdx < options.length) ? options[correctIdx] : options[0],
-          explanation: parts.length > 3 ? parts[3].trim() : 'Correct answer identified.',
-        ));
+      List<String> options = [];
+      int correctIdx = 0;
+      String explanation = 'Correct answer identified.';
+
+      if (parts.length >= 6) {
+        // Format: Question | OptA | OptB | OptC | OptD | CorrectIdx | Explanation (Length 7)
+        // or Question | OptA | OptB | OptC | OptD | CorrectIdx (Length 6)
+        int idxPos = parts.length - 2;
+        if (int.tryParse(parts[idxPos].trim()) != null) {
+          options = parts.sublist(1, idxPos).map((e) => e.trim()).toList();
+          correctIdx = int.tryParse(parts[idxPos].trim()) ?? 0;
+          explanation = parts.last.trim();
+        } else {
+          idxPos = parts.length - 1;
+          options = parts.sublist(1, idxPos).map((e) => e.trim()).toList();
+          correctIdx = int.tryParse(parts[idxPos].trim()) ?? 0;
+        }
+      } else if (parts.length == 5 && int.tryParse(parts[3].trim()) != null) {
+        // Format: Question | OptA | OptB | CorrectIdx | Explanation
+        options = [parts[1].trim(), parts[2].trim()];
+        correctIdx = int.tryParse(parts[3].trim()) ?? 0;
+        explanation = parts[4].trim();
+      } else if (parts.length >= 3) {
+        // Original format: Question | OptA, OptB, OptC | CorrectIdx | Explanation
+        options = parts[1].split(',').map((e) => e.trim()).toList();
+        correctIdx = int.tryParse(parts[2].trim()) ?? 0;
+        if (parts.length > 3) explanation = parts[3].trim();
+      } else {
+        continue;
       }
+
+      questions.add(QuizQuestion(
+        id: 'q_${DateTime.now().millisecondsSinceEpoch}_${questions.length}',
+        type: isVerdict ? QuizType.trueFalse : QuizType.multipleChoice,
+        question: parts[0].trim(),
+        options: options.isEmpty ? ['Option A'] : options,
+        answer: (correctIdx >= 0 && correctIdx < options.length) ? options[correctIdx] : (options.isNotEmpty ? options[0] : 'Answer'),
+        explanation: explanation,
+      ));
     }
     return questions;
   }
@@ -332,6 +359,7 @@ class GitHubContentService extends ChangeNotifier {
         Uri.parse(apiUrl),
         headers: {
           'Accept': 'application/vnd.github.v3+json',
+          'Authorization': 'token $_token',
         },
       );
       
