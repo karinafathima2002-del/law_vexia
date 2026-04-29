@@ -50,30 +50,20 @@ class GitHubContentService extends ChangeNotifier {
         await Future.delayed(const Duration(milliseconds: 100));
         
         // ── Fetch Main Content ──
-        final contentUrl = '$_rawBase/unit$i.txt?t=$timestamp';
-        final caseUrl = '$_rawBase/caselawunit$i.txt?t=$timestamp';
-        final quizUrl = '$_rawBase/quizunit$i.txt?t=$timestamp';
-        final verdictUrl = '$_rawBase/verdictunit$i.txt?t=$timestamp';
-        final flashUrl = '$_rawBase/flashcardsunit$i.txt?t=$timestamp';
-        final matchUrl = '$_rawBase/matchunit$i.txt?t=$timestamp';
+        final contentUrl = '$_rawBase/unit$i.txt';
+        final caseUrl = '$_rawBase/caselawunit$i.txt';
+        final quizUrl = '$_rawBase/quizunit$i.txt';
+        final verdictUrl = '$_rawBase/verdictunit$i.txt';
+        final flashUrl = '$_rawBase/flashcardsunit$i.txt';
+        final matchUrl = '$_rawBase/matchunit$i.txt';
 
         try {
-          // Use GitHub API instead of raw URL to avoid CORS/Fetch errors (essential for Web)
-          final apiUrl = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents/unit$i.txt';
-          final res = await http.get(
-            Uri.parse(apiUrl),
-            headers: {
-              'Accept': 'application/vnd.github.v3+json',
-              'Authorization': 'Bearer $_token',
-              'Cache-Control': 'no-cache',
-            },
-          );
+          final res = await http.get(Uri.parse(contentUrl));
           
           UnitContent? unit;
 
           if (res.statusCode == 200) {
-            final data = jsonDecode(res.body);
-            final content = utf8.decode(base64Decode((data['content'] as String).replaceAll('\n', '')));
+            final content = res.body;
             unit = await compute(_parseRawDocumentStatic, _ParseParams(i, content));
           } else if (i == 1) {
             // Fallback for Unit 1
@@ -145,27 +135,17 @@ class GitHubContentService extends ChangeNotifier {
     bool dataChanged = false;
     
     try {
-      final apiBase = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents';
-      final headers = {
-        'Accept': 'application/vnd.github.v3+json',
-        'Authorization': 'Bearer $_token',
-        'Cache-Control': 'no-cache',
-      };
-      
       final results = await Future.wait([
-        http.get(Uri.parse('$apiBase/caselawunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
-        http.get(Uri.parse('$apiBase/quizunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
-        http.get(Uri.parse('$apiBase/verdictunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
-        http.get(Uri.parse('$apiBase/matchunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
-        http.get(Uri.parse('$apiBase/flashcardsunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse(caseUrl)).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse(quizUrl)).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse(verdictUrl)).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse(matchUrl)).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse(flashUrl)).catchError((_) => http.Response('', 404)),
       ]);
 
       String decodeApiContent(http.Response res) {
         if (res.statusCode != 200) return '';
-        try {
-          final data = jsonDecode(res.body);
-          return utf8.decode(base64Decode((data['content'] as String).replaceAll('\n', '')));
-        } catch (_) { return ''; }
+        return res.body;
       }
 
       final caseBody = decodeApiContent(results[0]);
@@ -353,7 +333,7 @@ class GitHubContentService extends ChangeNotifier {
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       // Using GitHub API to list folder contents
-      final apiUrl = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents/materials?t=$timestamp';
+      final apiUrl = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents/materials';
       
       debugPrint('🔍 Fetching materials from: $apiUrl');
       
@@ -361,7 +341,6 @@ class GitHubContentService extends ChangeNotifier {
         Uri.parse(apiUrl),
         headers: {
           'Accept': 'application/vnd.github.v3+json',
-          'Authorization': 'Bearer $_token',
           'Cache-Control': 'no-cache',
         },
       );
