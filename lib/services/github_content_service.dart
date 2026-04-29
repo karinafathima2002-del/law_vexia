@@ -59,12 +59,13 @@ class GitHubContentService extends ChangeNotifier {
 
         try {
           // Use GitHub API instead of raw URL to avoid CORS/Fetch errors (essential for Web)
-          final apiUrl = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents/unit$i.txt?t=$timestamp';
+          final apiUrl = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents/unit$i.txt';
           final res = await http.get(
             Uri.parse(apiUrl),
             headers: {
               'Accept': 'application/vnd.github.v3+json',
-              'Authorization': 'token $_token',
+              'Authorization': 'Bearer $_token',
+              'Cache-Control': 'no-cache',
             },
           );
           
@@ -147,15 +148,16 @@ class GitHubContentService extends ChangeNotifier {
       final apiBase = 'https://api.github.com/repos/$_githubUser/$_githubRepo/contents';
       final headers = {
         'Accept': 'application/vnd.github.v3+json',
-        'Authorization': 'token $_token',
+        'Authorization': 'Bearer $_token',
+        'Cache-Control': 'no-cache',
       };
       
       final results = await Future.wait([
-        http.get(Uri.parse('$apiBase/caselawunit$i.txt?t=$timestamp'), headers: headers).catchError((_) => http.Response('', 404)),
-        http.get(Uri.parse('$apiBase/quizunit$i.txt?t=$timestamp'), headers: headers).catchError((_) => http.Response('', 404)),
-        http.get(Uri.parse('$apiBase/verdictunit$i.txt?t=$timestamp'), headers: headers).catchError((_) => http.Response('', 404)),
-        http.get(Uri.parse('$apiBase/matchunit$i.txt?t=$timestamp'), headers: headers).catchError((_) => http.Response('', 404)),
-        http.get(Uri.parse('$apiBase/flashcardsunit$i.txt?t=$timestamp'), headers: headers).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse('$apiBase/caselawunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse('$apiBase/quizunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse('$apiBase/verdictunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse('$apiBase/matchunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
+        http.get(Uri.parse('$apiBase/flashcardsunit$i.txt'), headers: headers).catchError((_) => http.Response('', 404)),
       ]);
 
       String decodeApiContent(http.Response res) {
@@ -359,7 +361,8 @@ class GitHubContentService extends ChangeNotifier {
         Uri.parse(apiUrl),
         headers: {
           'Accept': 'application/vnd.github.v3+json',
-          'Authorization': 'token $_token',
+          'Authorization': 'Bearer $_token',
+          'Cache-Control': 'no-cache',
         },
       );
       
